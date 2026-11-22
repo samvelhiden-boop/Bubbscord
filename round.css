@@ -164,6 +164,7 @@ nav ~ div [class*="scroller"] {
 }
 [class*="modeSelected"],
 [class*="interactiveSelected"] {
+    border-radius: 999px !important;
     background: rgb(255 255 255 / 0.08) !important;
     box-shadow: inset 0 0 0 1px var(--round-line-strong) !important;
 }
@@ -241,7 +242,8 @@ form [class*="attachedBars"] ~ [class*="scrollableContainer_"] {
     display: flex !important;
     flex-direction: column !important;
     justify-content: center !important;
-    border-radius: 999px !important;
+    /* как у обычного поля: в одну строку — «таблетка»; с картинкой (высокое) — скруглённый прямоугольник, а не овал */
+    border-radius: calc(var(--round-bar-height) / 2) !important;
     border: 1px solid var(--round-line) !important;
     background: var(--round-glass-fill) !important;
 }

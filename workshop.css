@@ -1,0 +1,109 @@
+/* Bubbscord — Мастерская: анимации эффектов профиля и вид окна выбора.
+   Сами правила «у кого какая табличка» плагин генерирует отдельно (workshop.tsx). */
+
+/* ===== анимации эффектов (только transform/opacity/background-position) ===== */
+@keyframes vc-bubbs-fall {
+    from { background-position: 0 -200px, 40px -120px, 90px -60px; }
+    to   { background-position: 0 200px, 40px 280px, 90px 340px; }
+}
+@keyframes vc-bubbs-fall-diag {
+    from { background-position: 0 -200px, 60px -140px, 130px -80px; }
+    to   { background-position: 120px 200px, 160px 260px, 230px 320px; }
+}
+@keyframes vc-bubbs-rise {
+    from { background-position: 0 200px, 70px 260px, 140px 320px; }
+    to   { background-position: 20px -200px, 50px -140px, 160px -80px; }
+}
+@keyframes vc-bubbs-twinkle {
+    0%, 100% { opacity: 0.35; }
+    50%      { opacity: 1; }
+}
+@keyframes vc-bubbs-aurora {
+    from { background-position: 0% 0%; }
+    to   { background-position: 200% 0%; }
+}
+@keyframes vc-bubbs-glow {
+    0%, 100% { box-shadow: inset 0 0 0 2px rgb(var(--vc-bubbs-glow, 124 138 255) / 0.55), inset 0 0 24px rgb(var(--vc-bubbs-glow, 124 138 255) / 0.25); }
+    50%      { box-shadow: inset 0 0 0 2px rgb(var(--vc-bubbs-glow, 124 138 255) / 0.95), inset 0 0 40px rgb(var(--vc-bubbs-glow, 124 138 255) / 0.45); }
+}
+@keyframes vc-bubbs-shimmer {
+    from { background-position: 0% 50%; }
+    to   { background-position: 200% 50%; }
+}
+
+/* ===== окно выбора ===== */
+.vc-bubbs-ws-section {
+    font: 600 12px/16px var(--font-primary, sans-serif);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted, #949ba4);
+    margin: 6px 0 2px;
+}
+.vc-bubbs-ws-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+}
+.vc-bubbs-ws-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px;
+    border-radius: 18px;
+    border: 1px solid var(--border-subtle, rgb(255 255 255 / 0.08));
+    background: rgb(255 255 255 / 0.03);
+    color: var(--text-default, #dbdee1);
+    cursor: pointer;
+    text-align: left;
+    font: 500 13px/18px var(--font-primary, sans-serif);
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+.vc-bubbs-ws-item:hover { background: rgb(255 255 255 / 0.06); }
+.vc-bubbs-ws-item-active { border-color: var(--brand-500, #5865f2); box-shadow: 0 0 0 1px var(--brand-500, #5865f2); }
+
+/* превью таблички — как строка участника */
+.vc-bubbs-ws-plate {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 40px;
+    padding: 0 10px 0 6px;
+    border-radius: 999px;
+    overflow: hidden;
+}
+.vc-bubbs-ws-plate-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgb(255 255 255 / 0.25);
+    flex-shrink: 0;
+}
+.vc-bubbs-ws-plate-name {
+    font-weight: 600;
+    color: #fff;
+    text-shadow: 0 1px 2px rgb(0 0 0 / 0.5);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* превью эффекта — маленькая карточка профиля */
+.vc-bubbs-ws-effect {
+    position: relative;
+    height: 90px;
+    border-radius: 14px;
+    overflow: hidden;
+    background: linear-gradient(160deg, #2a2e40, #15161d);
+}
+.vc-bubbs-ws-effect::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vc-bubbs-ws-effect::after,
+    .vc-bubbs-fx::after { animation: none !important; }
+}

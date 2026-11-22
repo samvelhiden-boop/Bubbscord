@@ -22,6 +22,8 @@ import {
     TRANSLATE_LANGUAGES
 } from "./telegram";
 import telegramStyle from "./telegram.css?managed";
+import { setWorkshopEnabled, startWorkshop, stopWorkshop } from "./workshop";
+import workshopStyle from "./workshop.css?managed";
 import { startUpdater, stopUpdater, UpdaterSetting } from "./updater";
 import wallpaperStyle from "./wallpaper.css?managed";
 
@@ -225,6 +227,8 @@ function bubblesCss(): string {
         [class*="interactiveSelected"][class*="interactiveSelected"] {
             background: rgb(${accent} / 0.16) !important;
             box-shadow: inset 0 0 0 1px rgb(${accent} / 0.45) !important;
+            /* у внешнего блока строки Discord скругления нет — без этого рамка была прямоугольной */
+            border-radius: 999px !important;
         }
         [class*="channelTextArea_"][class*="channelTextArea_"]:focus-within {
             border-color: rgb(${accent} / 0.6) !important;
@@ -452,8 +456,15 @@ const settings = definePluginSettings({
                 <Button onClick={() => openHub("favorites")}>⭐ Избранное</Button>
                 <Button onClick={() => openHub("reminders")}>⏰ Напоминания</Button>
                 <Button onClick={() => openHub("templates")}>⚡ Шаблоны</Button>
+                <Button onClick={() => openHub("workshop")}>🎨 Мастерская</Button>
             </div>
         )
+    },
+    workshopEnabled: {
+        type: OptionType.BOOLEAN,
+        description: "Мастерская: таблички у ников и эффекты профиля (свои и других пользователей Bubbscord)",
+        default: true,
+        onChange: (v: boolean) => setWorkshopEnabled(v)
     },
     foldersEnabled: {
         type: OptionType.BOOLEAN,
@@ -925,6 +936,8 @@ export default definePlugin({
         FluxDispatcher.subscribe("RTC_CONNECTION_STATE", onRtcState);
         startPanelsTracking();
         enableStyle(telegramStyle);
+        enableStyle(workshopStyle);
+        startWorkshop(settings.store.workshopEnabled !== false);
         startUpdater();
         addChatBarButton("BubbscordTemplates", TemplatesChatBarButton, BoltIcon);
         startTelegram({
@@ -947,6 +960,8 @@ export default definePlugin({
         stopPanelsTracking();
         stopOwnTracking();
         stopTelegram();
+        stopWorkshop();
+        disableStyle(workshopStyle);
         stopUpdater();
         removeChatBarButton("BubbscordTemplates");
         disableStyle(telegramStyle);

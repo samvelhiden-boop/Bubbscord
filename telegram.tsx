@@ -24,6 +24,8 @@ import {
     SelectedChannelStore, showToast, TextInput, useEffect, useState
 } from "@webpack/common";
 
+import { WorkshopTab } from "./workshop";
+
 // ---------- связь с основным файлом плагина ----------
 interface Hooks {
     translateTo(): string;
@@ -595,7 +597,7 @@ function folderItems(channelId: string) {
 // =====================================================================
 // Общее окно: Избранное / Напоминания / Шаблоны
 // =====================================================================
-type HubTab = "favorites" | "reminders" | "templates";
+type HubTab = "favorites" | "reminders" | "templates" | "workshop";
 
 function FavoritesTab({ close }: { close(): void; }) {
     const list = favorites.use();
@@ -688,7 +690,7 @@ function TemplatesTab() {
 
 function Hub({ props, initial }: { props: any; initial: HubTab; }) {
     const [tab, setTab] = useState<HubTab>(initial);
-    const tabs: [HubTab, string][] = [["favorites", "⭐ Избранное"], ["reminders", "⏰ Напоминания"], ["templates", "⚡ Шаблоны"]];
+    const tabs: [HubTab, string][] = [["favorites", "⭐ Избранное"], ["reminders", "⏰ Напоминания"], ["templates", "⚡ Шаблоны"], ["workshop", "🎨 Мастерская"]];
     return (
         <Modal {...props} size="md" title="Bubbscord">
             <div className="vc-bubbscord-hub-tabs">
@@ -699,6 +701,7 @@ function Hub({ props, initial }: { props: any; initial: HubTab; }) {
             {tab === "favorites" && <FavoritesTab close={props.onClose} />}
             {tab === "reminders" && <RemindersTab close={props.onClose} />}
             {tab === "templates" && <TemplatesTab />}
+            {tab === "workshop" && <WorkshopTab />}
         </Modal>
     );
 }

@@ -154,7 +154,7 @@ footer { color: var(--muted); font-size: 0.88rem; border-top: 1px solid var(--li
   <nav class="toc" aria-label="Оглавление">
     <div class="label">Инструкция</div>
     <a href="#chto-eto">Что это</a>
-    <a href="#skachat">Где взять</a>
+    <a href="#skachat">Установка в один клик</a>
     <a href="#sposob">Тема или плагин</a>
     <a href="#tema">Установка темы</a>
     <a href="#plagin">Установка плагина</a>
@@ -186,18 +186,14 @@ footer { color: var(--muted); font-size: 0.88rem; border-top: 1px solid var(--li
     </header>
 
     <section id="skachat">
-      <h2>Где взять</h2>
-      <p class="lede">Bubbscord раздаётся архивом <code>Bubbscord.zip</code> на Discord-сервере автора.</p>
+      <h2>Установка в один клик</h2>
+      <p class="lede">Один файл — <code>Установить Bubbscord.bat</code>. Его выкладывает автор у себя на Discord-сервере, он же лежит на <a href="https://github.com/samvelhiden-boop/Bubbscord" target="_blank" rel="noopener">GitHub</a>.</p>
       <ol class="steps">
-        <li><div>Скачай <code>Bubbscord.zip</code> с сервера автора: нажми на файл в сообщении → <b>Скачать</b>.</div></li>
-        <li><div>Распакуй: ПКМ по архиву → <b>Извлечь всё</b>. Внутри будут:
-          <span class="presets">
-            <span class="chip"><code>bubbscord</code> — папка плагина</span>
-            <span class="chip"><code>Bubbscord.theme.css</code> — тема</span>
-            <span class="chip"><code>Инструкция.html</code> — эта страница</span>
-          </span></div></li>
-        <li><div>Выбери способ ниже — тему или плагин.</div></li>
+        <li><div>Скачай <code>Установить Bubbscord.bat</code>.</div></li>
+        <li><div>Дважды кликни по нему. Если Windows покажет «Система Windows защитила ваш компьютер» — нажми <b>Подробнее → Выполнить в любом случае</b>.</div></li>
+        <li><div>Подожди 2–5 минут. Установщик сам поставит Git и Node.js (если их нет), скачает Vencord и Bubbscord, соберёт, установит в Discord, <b>сам включит плагин</b> и откроет Discord.</div></li>
       </ol>
+      <p class="note">Это всё. Ниже — подробности для тех, кто хочет только внешний вид (тема) или ставить руками.</p>
     </section>
 
     <section id="sposob">
@@ -346,6 +342,8 @@ footer { color: var(--muted); font-size: 0.88rem; border-top: 1px solid var(--li
           <span class="desc">ПКМ по сообщению → <b>«Перевести»</b>: перевод появится прямо под сообщением. Язык перевода — в настройках, по умолчанию русский.</span></div>
         <div class="opt"><span class="name">🖼️ Обои для чата</span><span class="def">ПКМ по чату</span>
           <span class="desc">ПКМ по ЛС, группе или каналу → <b>«Обои этого чата»</b> → своя картинка только для этого чата. В остальных — общие обои.</span></div>
+        <div class="opt"><span class="name">🎨 Мастерская</span><span class="def">звёздочка → Мастерская</span>
+          <span class="desc">Как Telegram Premium: <b>табличка у ника</b> (Закат, Океан, Сакура, Золото, Неон, Космос, анимированные Аврора и Радуга…) и <b>эффект профиля</b> (снег, сакура, звёзды, огоньки, северное сияние, неоновая рамка). Свой выбор видишь сразу. Чтобы видели все, у кого Bubbscord, — «Показать всем»: откроется заявка на GitHub, после её добавления в общий список табличка появится у всех в течение нескольких часов. Работает, если у человека своя аватарка (у стандартной аватарки Discord нет ID).</span></div>
         <div class="opt"><span class="name">📁 Папки чатов</span><span class="def">над списком ЛС</span>
           <span class="desc">Вкладки над списком ЛС: <b>Все</b>, <b>Личные</b>, <b>Группы</b> и свои. «+» — новая папка. Добавить чат в папку — ПКМ по ЛС → <b>«Папка»</b> → отметь нужные. ПКМ по вкладке — переименовать или удалить. Выключаются в настройках.</span></div>
       </div>

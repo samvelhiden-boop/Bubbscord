@@ -33,6 +33,23 @@ export async function fetchLatestVersion(_: IpcMainInvokeEvent, repo: string, br
     }
 }
 
+// ---------- Мастерская: общий список «у кого какая табличка» ----------
+export async function fetchWorkshopUsers(_: IpcMainInvokeEvent, repo: string, branch: string) {
+    if (!/^[\w.-]+\/[\w.-]+$/.test(repo) || !/^[\w./-]+$/.test(branch))
+        return { ok: false as const, users: {} as Record<string, unknown> };
+    try {
+        const res = await fetch(`https://raw.githubusercontent.com/${repo}/${branch}/workshop/users.json?t=${Date.now()}`, {
+            headers: { "Cache-Control": "no-cache" }
+        });
+        if (!res.ok) return { ok: false as const, users: {} as Record<string, unknown> };
+        const data = await res.json();
+        const users = data && typeof data.users === "object" ? data.users : {};
+        return { ok: true as const, users: users as Record<string, unknown> };
+    } catch {
+        return { ok: false as const, users: {} as Record<string, unknown> };
+    }
+}
+
 // ---------- автообновление ----------
 
 // этот код собран в Vencord\dist — значит корень Vencord на уровень выше

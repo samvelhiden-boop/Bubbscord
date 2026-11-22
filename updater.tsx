@@ -13,7 +13,7 @@ import { PluginNative } from "@utils/types";
 import { showToast, useState } from "@webpack/common";
 
 /** версия этой сборки — повышай при каждом выпуске (и в version.json в репозитории) */
-export const VERSION = "1.3.0";
+export const VERSION = "1.4.0";
 /** репозиторий на GitHub в виде «ник/название»; пусто — проверка выключена */
 export const UPDATE_REPO = "samvelhiden-boop/Bubbscord";
 export const UPDATE_BRANCH = "main";
