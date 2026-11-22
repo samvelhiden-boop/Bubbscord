@@ -263,7 +263,8 @@ footer { color: var(--muted); font-size: 0.88rem; border-top: 1px solid var(--li
       <p class="note">Если PowerShell пишет, что <code>pnpm</code> не является командой — закрой и снова открой PowerShell после установки pnpm, или пиши <code>npx pnpm</code> вместо <code>pnpm</code>.</p>
 
       <h3>Обновление</h3>
-      <p class="lede">Когда выходит новая версия, Bubbscord сам показывает уведомление <b>«Доступно обновление»</b> (проверка раз в сутки; вручную — кнопка «Проверить обновления» в настройках плагина). Обновиться — в PowerShell, в папке <code>Vencord</code>:</p>
+      <p class="lede">Когда выходит новая версия, Bubbscord сам показывает уведомление <b>«Доступно обновление»</b> (проверка раз в сутки; вручную — «Проверить обновления» вверху настроек плагина). <b>Нажми на уведомление</b> или на кнопку <b>«Обновить сейчас»</b> — плагин сам скачает новую версию, пересоберёт Vencord и предложит перезапустить Discord. Работает и для установки из архива.</p>
+      <p>Если автообновление не сработало — вручную, в PowerShell, в папке <code>Vencord</code>:</p>
       <div class="cmd"><code>git -C src\userplugins\bubbscord pull; git pull; pnpm install --frozen-lockfile; pnpm build</code><button type="button" data-copy>Копировать</button></div>
       <p>Если ставил из архива, а не через <code>git clone</code>, — сначала замени папку <code>bubbscord</code> на новую из свежего архива, потом выполни ту же команду без первой части. После обновления полностью перезапусти Discord (трей → <b>Quit</b>).</p>
     </section>
