@@ -1,0 +1,98 @@
+/**
+ * @name Bubbscord Wallpaper Base
+ * @description Основа для своих обоев: прозрачные панели Discord. Картинку подставляет плагин.
+ */
+
+/* ===== Крутилки ===== */
+:root {
+    --dedboost-dim: 0.70;        /* затемнение обоев (вся картинка ровно): 0 — ярко, 0.8 — почти чёрные */
+    --dedboost-blur: 0px;        /* (больше не используется: размытие на весь экран тормозит) */
+    --dedboost-panels: 0.40;     /* лёгкая тень на боковых панелях: 0 — полностью прозрачно */
+    --dedboost-position: center top;
+}
+
+/* ===== Сама картинка ===== */
+html { background: #000 !important; }
+body { background: transparent !important; }
+#app-mount { background: transparent !important; }
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    /* затемнение — полупрозрачным слоем поверх картинки, без CSS filter: так дешевле для видеокарты */
+    background:
+        linear-gradient(rgb(0 0 0 / var(--dedboost-dim)), rgb(0 0 0 / var(--dedboost-dim)));
+    /* картинка не перерисовывается при прокрутке */
+    will-change: transform;
+    contain: strict;
+    /* отдельный слой видеокарты: при прокрутке чата картинка не перерисовывается */
+    transform: translateZ(0);
+    backface-visibility: hidden;
+}
+
+/* ===== Прозрачность =====
+   Раньше каждая панель была полупрозрачной, и они накладывались друг на друга, затемняя картинку слоями.
+   Теперь основные фоны полностью прозрачные, а читаемость даёт затемнение самой картинки. */
+:root, html .theme-dark, html .theme-darker, html .theme-midnight, html .theme-light,
+html.custom-theme-background, .custom-theme-background {
+    --background-base-lowest: transparent !important;
+    --background-base-lower: transparent !important;
+    --background-base-low: rgb(0 0 0 / var(--dedboost-panels)) !important;
+    --background-primary: transparent !important;
+    --background-secondary: rgb(0 0 0 / var(--dedboost-panels)) !important;
+    --background-secondary-alt: rgb(0 0 0 / var(--dedboost-panels)) !important;
+    --background-tertiary: transparent !important;
+    --bg-base-primary: transparent !important;
+    --bg-base-secondary: rgb(0 0 0 / var(--dedboost-panels)) !important;
+    --bg-base-tertiary: transparent !important;
+    --chat-background-default: transparent !important;
+    --custom-theme-background: transparent !important;
+    --custom-background-gradient: none !important;
+}
+
+/* Градиентная (Nitro) тема Discord и непрозрачные контейнеры */
+#app-mount [class*="bg_"],
+.custom-theme-background #app-mount,
+.custom-theme-background [class*="app_"],
+.custom-theme-background [class*="layers_"],
+.custom-theme-background [class*="layer_"]:not([class*="layerContainer"]) {
+    background: transparent !important;
+    background-image: none !important;
+}
+
+/* Поле ввода сообщения — чуть плотнее, чтобы было видно, где писать */
+/* только сам элемент: класс слева от пробела заставлял бы пересчитывать поддеревья */
+[class*="scrollableContainer_"] {
+    background: rgb(0 0 0 / 0.35) !important;
+}
+
+/* Заглушки при загрузке сообщений — без сплошного чёрного блока */
+[class*="emptyChannelPlaceholder"] {
+    background: transparent !important;
+}
+
+/* Настройки (модальное окно) — возвращаем обычные плотные цвета, чтобы чат не просвечивал */
+[data-mana-component="layer-modal"],
+[data-mana-component="layer-modal"] .theme-dark,
+[data-mana-component="layer-modal"] .theme-darker,
+[data-mana-component="layer-modal"] .theme-midnight,
+[data-mana-component="layer-modal"] .theme-light,
+[role="dialog"][aria-modal="true"],
+[role="dialog"][aria-modal="true"] .theme-dark {
+    --background-base-lowest: #121214 !important;
+    --background-base-lower: #1a1a1e !important;
+    --background-base-low: #1d1d21 !important;
+    --background-primary: #1a1a1e !important;
+    --background-secondary: #121214 !important;
+    --background-secondary-alt: #1d1d21 !important;
+    --background-tertiary: #121214 !important;
+    --bg-base-primary: #1a1a1e !important;
+    --bg-base-secondary: #121214 !important;
+    --bg-base-tertiary: #121214 !important;
+    --chat-background-default: #1a1a1e !important;
+}
+[data-mana-component="layer-modal"] {
+    background: #1a1a1e !important;
+}

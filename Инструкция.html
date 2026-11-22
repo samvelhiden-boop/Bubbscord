@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}</style>
+</head>
+<body>
+<title>Bubbscord — инструкция</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Manrope:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: одна колонка чтения, слева «таблетка»-оглавление на широких экранах; всё скруглено, как в самом плагине */
+:root {
+  --bg: #f3f3f8;
+  --surface: #ffffff;
+  --surface-2: #e9eaf3;
+  --fg: #181a24;
+  --muted: #5b5f73;
+  --line: #d7d9e6;
+  --accent: #5563f0;
+  --accent-soft: rgb(85 99 240 / 0.12);
+  --bubble: #e4e6f2;
+  --bubble-own: #5563f0;
+  --bubble-own-fg: #ffffff;
+  --warn: #b45309;
+  --warn-soft: rgb(180 83 9 / 0.10);
+  --ok: #15803d;
+  --font-display: "Unbounded", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Manrope", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", Consolas, monospace;
+  --pill: 999px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e0f14; --surface: #171922; --surface-2: #1f2230; --fg: #eceef6; --muted: #9aa0b8;
+    --line: #2a2d3d; --accent: #7c8aff; --accent-soft: rgb(124 138 255 / 0.16);
+    --bubble: #262a3b; --bubble-own: #4c58d6; --bubble-own-fg: #ffffff;
+    --warn: #f0a24b; --warn-soft: rgb(240 162 75 / 0.12); --ok: #4ade80;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e0f14; --surface: #171922; --surface-2: #1f2230; --fg: #eceef6; --muted: #9aa0b8;
+  --line: #2a2d3d; --accent: #7c8aff; --accent-soft: rgb(124 138 255 / 0.16);
+  --bubble: #262a3b; --bubble-own: #4c58d6; --bubble-own-fg: #ffffff;
+  --warn: #f0a24b; --warn-soft: rgb(240 162 75 / 0.12); --ok: #4ade80;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg);
+  font: 16px/1.65 var(--font-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 64px;
+}
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; line-height: 1.2; margin: 0; }
+h2 { font-size: 1.45rem; font-weight: 700; }
+h3 { font-size: 1.02rem; font-weight: 500; }
+p { margin: 0; }
+code, .mono { font-family: var(--font-mono); font-size: 0.88em; }
+:not(pre) > code { background: var(--surface-2); padding: 0.1em 0.45em; border-radius: 6px; }
+
+.page { max-width: 1080px; margin: 0 auto; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 48px; }
+@media (max-width: 860px) { .page { grid-template-columns: minmax(0, 1fr); gap: 0; } .toc { display: none; } }
+
+/* оглавление — таблетки, как каналы в Bubbscord */
+.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 24px); align-self: start; padding-top: 40px; display: flex; flex-direction: column; gap: 4px; }
+.toc a { text-decoration: none; color: var(--muted); padding: 7px 14px; border-radius: var(--pill); font-size: 0.92rem; }
+.toc a:hover { background: var(--surface-2); color: var(--fg); }
+.toc .label { font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 0 14px 6px; }
+
+main { min-width: 0; display: flex; flex-direction: column; gap: 56px; padding-top: 40px; }
+section { display: flex; flex-direction: column; gap: 18px; scroll-margin-top: 24px; }
+.lede { color: var(--muted); max-width: 62ch; }
+
+/* шапка: название + живой пример пузырей */
+.hero { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 32px; align-items: center; }
+@media (max-width: 700px) { .hero { grid-template-columns: minmax(0, 1fr); } }
+.hero h1 { font-size: clamp(2rem, 5vw, 3rem); font-weight: 700; letter-spacing: -0.01em; }
+.hero h1 span { color: var(--accent); }
+.hero .lede { margin-top: 14px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.chip { padding: 5px 12px; border-radius: var(--pill); background: var(--surface); border: 1px solid var(--line); font-size: 0.85rem; color: var(--muted); }
+
+.chat { background: var(--surface); border: 1px solid var(--line); border-radius: 28px; padding: 18px; display: flex; flex-direction: column; gap: 8px; }
+.msg { display: flex; flex-direction: column; gap: 2px; max-width: 85%; }
+.msg .who { font-size: 0.78rem; font-weight: 700; color: var(--accent); padding-left: 4px; }
+.msg .b { background: var(--bubble); padding: 7px 14px; border-radius: 18px 18px 18px 6px; font-size: 0.93rem; }
+.msg.own { align-self: flex-end; align-items: flex-end; }
+.msg.own .b { background: var(--bubble-own); color: var(--bubble-own-fg); border-radius: 18px 18px 6px 18px; }
+.composer { margin-top: 6px; border: 1px solid var(--line); border-radius: var(--pill); padding: 9px 16px; color: var(--muted); font-size: 0.88rem; }
+
+/* сравнение способов */
+.compare-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 20px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; min-width: 520px; font-size: 0.93rem; }
+th, td { text-align: left; padding: 11px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+th { font-family: var(--font-display); font-weight: 500; font-size: 0.85rem; }
+td.y { color: var(--ok); } td.n { color: var(--muted); }
+
+/* шаги установки — это реальная последовательность, поэтому нумерация */
+ol.steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; counter-reset: s; }
+ol.steps > li { counter-increment: s; display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 14px; }
+ol.steps > li::before { content: counter(s); width: 34px; height: 34px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font: 700 0.9rem var(--font-display); }
+ol.steps > li > div { min-width: 0; display: flex; flex-direction: column; gap: 8px; padding-top: 4px; }
+
+.cmd { display: flex; align-items: center; gap: 8px; background: var(--surface-2); border-radius: 14px; padding: 6px 6px 6px 14px; }
+.cmd code { flex: 1; min-width: 0; overflow-x: auto; white-space: nowrap; background: none; padding: 0; }
+.cmd button { flex-shrink: 0; border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: var(--pill); padding: 5px 12px; font: 500 0.8rem var(--font-body); cursor: pointer; }
+.cmd button:hover { border-color: var(--accent); }
+
+.note { border-radius: 18px; padding: 14px 18px; background: var(--accent-soft); font-size: 0.93rem; }
+.note.warn { background: var(--warn-soft); }
+.note b { color: var(--fg); }
+
+/* настройки: группы с переключателями как в Vencord */
+.group { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; overflow: hidden; }
+.group h3 { padding: 14px 18px; border-bottom: 1px solid var(--line); background: var(--surface-2); }
+.opt { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 16px; padding: 13px 18px; border-bottom: 1px solid var(--line); }
+.opt:last-child { border-bottom: none; }
+.opt .name { font-weight: 700; }
+.opt .desc { grid-column: 1 / -1; color: var(--muted); font-size: 0.92rem; }
+.def { font-size: 0.78rem; padding: 3px 10px; border-radius: var(--pill); border: 1px solid var(--line); color: var(--muted); white-space: nowrap; align-self: start; font-variant-numeric: tabular-nums; }
+.def.on { color: var(--ok); border-color: currentColor; }
+
+.presets { display: flex; flex-wrap: wrap; gap: 8px; }
+.preset { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px 5px 6px; border-radius: var(--pill); border: 1px solid var(--line); background: var(--surface); font-size: 0.86rem; }
+.dot { width: 16px; height: 16px; border-radius: 50%; border: 1px solid rgb(127 127 127 / 0.35); }
+
+.auto { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.auto div { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 12px 16px; font-size: 0.92rem; }
+.auto b { display: block; font-family: var(--font-display); font-weight: 500; font-size: 0.9rem; margin-bottom: 2px; }
+
+details { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 0 18px; }
+details + details { margin-top: 8px; }
+summary { cursor: pointer; padding: 14px 0; font-weight: 700; list-style: none; display: flex; justify-content: space-between; gap: 12px; }
+summary::-webkit-details-marker { display: none; }
+summary::after { content: "+"; color: var(--accent); font-family: var(--font-display); }
+details[open] summary::after { content: "–"; }
+details > div { padding-bottom: 16px; color: var(--muted); display: flex; flex-direction: column; gap: 8px; }
+details > div b { color: var(--fg); }
+
+footer { color: var(--muted); font-size: 0.88rem; border-top: 1px solid var(--line); padding-top: 20px; }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+
+<div class="page">
+  <nav class="toc" aria-label="Оглавление">
+    <div class="label">Инструкция</div>
+    <a href="#chto-eto">Что это</a>
+    <a href="#skachat">Где взять</a>
+    <a href="#sposob">Тема или плагин</a>
+    <a href="#tema">Установка темы</a>
+    <a href="#plagin">Установка плагина</a>
+    <a href="#nastroyki">Настройки</a>
+    <a href="#telegram">Из Telegram</a>
+    <a href="#oboi">Свои обои</a>
+    <a href="#sam">Что работает само</a>
+    <a href="#problemy">Если что-то не так</a>
+  </nav>
+
+  <main>
+    <header class="hero" id="chto-eto">
+      <div>
+        <h1>Bubbs<span>cord</span></h1>
+        <p class="lede">Плагин для Vencord, который делает Discord округлым и похожим на Telegram: капсулы и «таблетки» вместо квадратов, сообщения пузырями, твои — справа, свои цвета и обои. Заодно разгружает Discord: ставит гифки на паузу в фоне и убирает лишние кнопки.</p>
+        <div class="chips">
+          <span class="chip">Автор: Sherry Williams</span>
+          <span class="chip">Vencord</span>
+          <span class="chip">Windows</span>
+        </div>
+      </div>
+      <div class="chat" aria-label="Пример: так выглядят сообщения в Bubbscord">
+        <div class="msg"><span class="who">Fedor</span><span class="b">Что вы тут делаете?</span></div>
+        <div class="msg"><span class="b">Скинь, как у тебя теперь выглядит дискорд</span></div>
+        <div class="msg own"><span class="b">Смотри, пузыри как в телеге 😎</span></div>
+        <div class="msg own"><span class="b">И цвет можно любой поставить</span></div>
+        <div class="composer">Сообщение #основной-чат</div>
+      </div>
+    </header>
+
+    <section id="skachat">
+      <h2>Где взять</h2>
+      <p class="lede">Bubbscord раздаётся архивом <code>Bubbscord.zip</code> на Discord-сервере автора.</p>
+      <ol class="steps">
+        <li><div>Скачай <code>Bubbscord.zip</code> с сервера автора: нажми на файл в сообщении → <b>Скачать</b>.</div></li>
+        <li><div>Распакуй: ПКМ по архиву → <b>Извлечь всё</b>. Внутри будут:
+          <span class="presets">
+            <span class="chip"><code>bubbscord</code> — папка плагина</span>
+            <span class="chip"><code>Bubbscord.theme.css</code> — тема</span>
+            <span class="chip"><code>Инструкция.html</code> — эта страница</span>
+          </span></div></li>
+        <li><div>Выбери способ ниже — тему или плагин.</div></li>
+      </ol>
+    </section>
+
+    <section id="sposob">
+      <h2>Тема или плагин</h2>
+      <p class="lede">Есть два способа поставить Bubbscord. Тема ставится за минуту, плагин даёт всё, но его нужно собрать. Выбери один.</p>
+      <div class="compare-wrap">
+        <table>
+          <thead><tr><th></th><th>Тема <code>Bubbscord.theme.css</code></th><th>Плагин <code>bubbscord</code></th></tr></thead>
+          <tbody>
+            <tr><td>Установка</td><td>1 минута, ничего собирать не нужно</td><td>около 10 минут, нужна сборка Vencord</td></tr>
+            <tr><td>Капсулы, «таблетки», анимации</td><td class="y">есть</td><td class="y">есть</td></tr>
+            <tr><td>Пузыри сообщений</td><td>все слева, цвет один</td><td class="y">твои справа, цвет любой</td></tr>
+            <tr><td>Редактор цветов и пресеты</td><td class="n">нет</td><td class="y">есть</td></tr>
+            <tr><td>Свои обои</td><td class="n">нет</td><td class="y">есть</td></tr>
+            <tr><td>Капсула звонка без шва, пауза гифок</td><td class="n">нет</td><td class="y">есть</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note warn"><b>Не включай тему и плагин одновременно</b> — стили наложатся друг на друга и всё поедет.</p>
+    </section>
+
+    <section id="tema">
+      <h2>Установка темы</h2>
+      <p class="lede">Если Vencord уже стоит (в настройках Discord есть раздел <b>Vencord</b>) — начинай с шага 4.</p>
+      <ol class="steps">
+        <li><div>Скачай официальный установщик Vencord с сайта <a href="https://vencord.dev/download" target="_blank" rel="noopener">vencord.dev/download</a> (кнопка для Windows).</div></li>
+        <li><div>Запусти его, выбери свой Discord (обычно <b>Stable</b>) и нажми <b>Install</b>.</div></li>
+        <li><div>Полностью закрой Discord (значок в трее → <b>Quit</b>) и открой заново — в настройках появится раздел <b>Vencord</b>.</div></li>
+        <li><div>Discord → <b>Настройки → Vencord → Themes</b>.</div></li>
+        <li><div>Нажми <b>Open Themes Folder</b> — откроется папка тем.</div></li>
+        <li><div>Положи туда файл <code>Bubbscord.theme.css</code> из архива.</div></li>
+        <li><div>Вернись в Discord и включи <b>Bubbscord Round</b> в списке тем.</div></li>
+      </ol>
+    </section>
+
+    <section id="plagin">
+      <h2>Установка плагина</h2>
+      <p class="lede">Сторонние плагины Vencord ставятся только сборкой из исходников. Это делается один раз, дальше — только обновления.</p>
+
+      <h3>Сначала установи</h3>
+      <ol class="steps">
+        <li><div><a href="https://git-scm.com/download/win" target="_blank" rel="noopener">Git</a> — всё по умолчанию.</div></li>
+        <li><div><a href="https://nodejs.org" target="_blank" rel="noopener">Node.js LTS</a> — всё по умолчанию.</div></li>
+        <li><div>pnpm: открой PowerShell и выполни
+          <div class="cmd"><code>npm install -g pnpm</code><button type="button" data-copy>Копировать</button></div></div></li>
+      </ol>
+
+      <h3>Потом собери Vencord с Bubbscord</h3>
+      <ol class="steps">
+        <li><div>Открой PowerShell в папке, где будет лежать Vencord (например, на рабочем столе), и скачай исходники:
+          <div class="cmd"><code>git clone https://github.com/Vendicated/Vencord</code><button type="button" data-copy>Копировать</button></div></div></li>
+        <li><div>Зайди в папку и поставь зависимости:
+          <div class="cmd"><code>cd Vencord</code><button type="button" data-copy>Копировать</button></div>
+          <div class="cmd"><code>pnpm install --frozen-lockfile</code><button type="button" data-copy>Копировать</button></div></div></li>
+        <li><div>Скопируй папку <code>bubbscord</code> из архива в <code>Vencord\src\userplugins\</code>. Папки <code>userplugins</code> может не быть — создай её. Должно получиться <code>Vencord\src\userplugins\bubbscord\index.tsx</code>.</div></li>
+        <li><div>Собери:
+          <div class="cmd"><code>pnpm build</code><button type="button" data-copy>Копировать</button></div></div></li>
+        <li><div>Установи в Discord и выбери свой Discord (обычно Stable):
+          <div class="cmd"><code>pnpm inject</code><button type="button" data-copy>Копировать</button></div></div></li>
+        <li><div>Полностью закрой Discord (значок в трее → <b>Quit</b>) и открой заново.</div></li>
+        <li><div><b>Настройки → Vencord → Plugins → Bubbscord</b> — включи и нажми шестерёнку: там все настройки.</div></li>
+      </ol>
+      <p class="note">Если PowerShell пишет, что <code>pnpm</code> не является командой — закрой и снова открой PowerShell после установки pnpm, или пиши <code>npx pnpm</code> вместо <code>pnpm</code>.</p>
+
+      <h3>Обновление</h3>
+      <p class="lede">Когда выходит новая версия, Bubbscord сам показывает уведомление <b>«Доступно обновление»</b> (проверка раз в сутки; вручную — кнопка «Проверить обновления» в настройках плагина). Обновиться — в PowerShell, в папке <code>Vencord</code>:</p>
+      <div class="cmd"><code>git -C src\userplugins\bubbscord pull; git pull; pnpm install --frozen-lockfile; pnpm build</code><button type="button" data-copy>Копировать</button></div>
+      <p>Если ставил из архива, а не через <code>git clone</code>, — сначала замени папку <code>bubbscord</code> на новую из свежего архива, потом выполни ту же команду без первой части. После обновления полностью перезапусти Discord (трей → <b>Quit</b>).</p>
+    </section>
+
+    <section id="nastroyki">
+      <h2>Настройки</h2>
+      <p class="lede">Всё находится в <b>Настройки → Vencord → Plugins → Bubbscord</b> (шестерёнка). Справа — значение по умолчанию.</p>
+
+      <div class="group">
+        <h3>Интерфейс</h3>
+        <div class="opt"><span class="name">Интерфейс Bubbscord</span><span class="def on">вкл</span>
+          <span class="desc">Капсулы, «таблетки», скругления и плавные анимации по всему Discord. Выключишь — вернётся обычный вид, остальные функции продолжат работать.</span></div>
+      </div>
+
+      <div class="group">
+        <h3>Тема в стиле Telegram</h3>
+        <div class="opt"><span class="name">Редактор темы</span><span class="def">вверху настроек</span>
+          <span class="desc">Готовые пресеты одной кнопкой, две пипетки — <b>акцент</b> (выбранный канал, рамка поля ввода, ссылки, твои пузыри) и <b>цвет пузыря</b> — и живое превью прямо в настройках. Пока тянешь пипетку, меняется только превью; в Discord цвет применяется, когда остановишься.
+          <span class="presets" aria-label="Пресеты">
+            <span class="preset"><i class="dot" style="background:#6c7bff"></i><i class="dot" style="background:#2a2e40"></i>Ночь</span>
+            <span class="preset"><i class="dot" style="background:#3390ec"></i><i class="dot" style="background:#182533"></i>Telegram</span>
+            <span class="preset"><i class="dot" style="background:#d4af37"></i><i class="dot" style="background:#1c2238"></i>Золото</span>
+            <span class="preset"><i class="dot" style="background:#ff6fa8"></i><i class="dot" style="background:#2a1b24"></i>Сакура</span>
+            <span class="preset"><i class="dot" style="background:#2ecc8f"></i><i class="dot" style="background:#15261f"></i>Изумруд</span>
+            <span class="preset"><i class="dot" style="background:#b8bcc8"></i><i class="dot" style="background:#202024"></i>Графит</span>
+          </span></span></div>
+        <div class="opt"><span class="name">Сообщения пузырями</span><span class="def on">вкл</span>
+          <span class="desc">Текст каждого сообщения — в своём пузыре по ширине текста, не шире 720px. Без этого не работает и следующий пункт.</span></div>
+        <div class="opt"><span class="name">Свои сообщения справа</span><span class="def on">вкл</span>
+          <span class="desc">Твои пузыри — у правого края и цветом акцента, ник и время прижаты вправо, твоя аватарка скрыта.</span></div>
+        <div class="opt"><span class="name">Скругление пузырей</span><span class="def">18 px</span>
+          <span class="desc">От 4 (почти квадратные) до 24 (совсем круглые).</span></div>
+        <div class="opt"><span class="name">Плотность пузырей</span><span class="def">75 %</span>
+          <span class="desc">Меньше — сквозь пузыри сильнее видно обои.</span></div>
+      </div>
+
+      <div class="group">
+        <h3>Шрифты</h3>
+        <div class="opt"><span class="name">Шрифт</span><span class="def">Discord</span>
+          <span class="desc">Как в Telegram — выбери шрифт из списка: Segoe UI Variable, Bahnschrift, Calibri, Candara (округлый), Verdana, Georgia (с засечками), Cascadia Code (моноширинный), Comic Sans и другие. Это шрифты из Windows — работают без интернета и не тормозят. Превью в редакторе темы сразу показывает выбранный шрифт.</span></div>
+        <div class="opt"><span class="name">Свой шрифт</span><span class="def">пусто</span>
+          <span class="desc">Любой шрифт, установленный на компьютере: выбери «Свой» в списке выше и впиши точное название (например, <code>Nunito</code>). Шрифт ставится как обычно: скачай, ПКМ по файлу → «Установить», перезапусти Discord.</span></div>
+        <div class="opt"><span class="name">Где менять шрифт</span><span class="def">весь Discord</span>
+          <span class="desc">Во всём Discord или только в тексте сообщений и никах в чате.</span></div>
+        <div class="opt"><span class="name">Размер текста сообщений</span><span class="def">16 px</span>
+          <span class="desc">От 12 до 22. 16 — как в обычном Discord.</span></div>
+      </div>
+
+      <div class="group">
+        <h3>Скорость и чистота</h3>
+        <div class="opt"><span class="name">Пауза в фоне</span><span class="def on">вкл</span>
+          <span class="desc">Гифки встают на паузу, когда Discord свёрнут или ты в игре, и продолжаются, когда возвращаешься.</span></div>
+        <div class="opt"><span class="name">Без размытия</span><span class="def on">вкл</span>
+          <span class="desc">Убирает размытие за окнами и картинками — самый тяжёлый эффект для видеокарты.</span></div>
+        <div class="opt"><span class="name">Спрятать лишнее</span><span class="def on">вкл</span>
+          <span class="desc">Кнопки подарка и стикеров у поля ввода, квесты и лаунчер приложений. Вкладки Nitro и Магазин остаются.</span></div>
+        <div class="opt"><span class="name">Спрятать «Сейчас активны»</span><span class="def on">вкл</span>
+          <span class="desc">Правая колонка на странице друзей.</span></div>
+        <div class="opt"><span class="name">Убрать украшения</span><span class="def on">вкл</span>
+          <span class="desc">Рамки аватаров, эффекты профилей и анимированные таблички ников — они крутятся постоянно и нагружают процессор.</span></div>
+        <div class="opt"><span class="name">Быстрый чат</span><span class="def">выкл</span>
+          <span class="desc">Сплошной тёмный фон под сообщениями: прокрутка легче, обои остаются по бокам. Для слабых компьютеров.</span></div>
+        <div class="opt"><span class="name">Без анимаций</span><span class="def">выкл</span>
+          <span class="desc">Всё реагирует мгновенно, без плавных переходов. Для слабых компьютеров.</span></div>
+      </div>
+    </section>
+
+    <section id="telegram">
+      <h2>Из Telegram</h2>
+      <p class="lede">Только в плагине. Всё хранится у тебя на компьютере и никуда не отправляется — кроме текста, который ты сам решил перевести (он уходит в Google Translate).</p>
+      <div class="group">
+        <div class="opt"><span class="name">⭐ Избранное</span><span class="def">ПКМ по сообщению</span>
+          <span class="desc">ПКМ по сообщению → <b>«В Избранное»</b>. Все сохранённые — по звёздочке у поля ввода: с поиском, картинками и кнопкой «Перейти» к сообщению.</span></div>
+        <div class="opt"><span class="name">⏰ Напоминания</span><span class="def">ПКМ по сообщению</span>
+          <span class="desc">ПКМ по сообщению → <b>«Напомнить»</b> → через 20 минут, час, 3 часа, вечером в 20:00 или завтра в 9:00. В нужное время всплывёт уведомление, клик — переход к сообщению. Если Discord был закрыт, пропущенные напоминания придут сразу при запуске. Список и отмена — по звёздочке у поля ввода, вкладка «Напоминания».</span></div>
+        <div class="opt"><span class="name">⚡ Быстрые ответы</span><span class="def">молния у поля ввода</span>
+          <span class="desc">Свои шаблоны текста. Клик по молнии у поля ввода — список шаблонов, выбранный вставляется в сообщение. Или команда <code>/шаблон название</code> — сразу отправит. Добавить и изменить — ПКМ по молнии или вкладка «Шаблоны».</span></div>
+        <div class="opt"><span class="name">🌐 Перевод</span><span class="def">ПКМ по сообщению</span>
+          <span class="desc">ПКМ по сообщению → <b>«Перевести»</b>: перевод появится прямо под сообщением. Язык перевода — в настройках, по умолчанию русский.</span></div>
+        <div class="opt"><span class="name">🖼️ Обои для чата</span><span class="def">ПКМ по чату</span>
+          <span class="desc">ПКМ по ЛС, группе или каналу → <b>«Обои этого чата»</b> → своя картинка только для этого чата. В остальных — общие обои.</span></div>
+        <div class="opt"><span class="name">📁 Папки чатов</span><span class="def">над списком ЛС</span>
+          <span class="desc">Вкладки над списком ЛС: <b>Все</b>, <b>Личные</b>, <b>Группы</b> и свои. «+» — новая папка. Добавить чат в папку — ПКМ по ЛС → <b>«Папка»</b> → отметь нужные. ПКМ по вкладке — переименовать или удалить. Выключаются в настройках.</span></div>
+      </div>
+    </section>
+
+    <section id="oboi">
+      <h2>Свои обои</h2>
+      <ol class="steps">
+        <li><div>Включи <b>«Обои: своя картинка»</b>.</div></li>
+        <li><div>Нажми <b>«Выбрать обои с компьютера»</b>. Под кнопкой появится проверка размера: например, <code>✓ размера хватает, будет чётко</code> или <code>⚠ растягивается в 2.6 раза и будет мыльной</code>.</div></li>
+        <li><div>Подстрой ползунки под картинку.</div></li>
+      </ol>
+      <div class="group">
+        <div class="opt"><span class="name">Затемнение обоев</span><span class="def">70 %</span>
+          <span class="desc">Чтобы текст читался. Меньше — картинка ярче.</span></div>
+        <div class="opt"><span class="name">Тень на боковых панелях</span><span class="def">40 %</span>
+          <span class="desc">0 — колонки полностью прозрачные.</span></div>
+        <div class="opt"><span class="name">Какую часть показывать</span><span class="def">верх</span>
+          <span class="desc">Если картинка не влезает целиком: верх (лица не обрезаются), центр, низ, левый или правый край.</span></div>
+        <div class="opt"><span class="name">Размытие обоев</span><span class="def">0 px</span>
+          <span class="desc">Мягкий фон, если картинка слишком пёстрая.</span></div>
+        <div class="opt"><span class="name">Ссылка на картинку</span><span class="def">пусто</span>
+          <span class="desc">Вместо файла. Discord пускает картинки только с некоторых сайтов (i.imgur.com, i.ibb.co, i.pinimg.com, cdn.discordapp.com, files.catbox.moe, GitHub) и только прямые ссылки на саму картинку. Если не загрузится — появится уведомление.</span></div>
+      </div>
+      <p class="note"><b>Для чёткого фона</b> картинка должна быть не меньше экрана: для обычного монитора — от 1920×1080. Маленькую картинку (например, превью с Pinterest на 736px) можно увеличить нейросетью в бесплатной программе <a href="https://upscayl.org" target="_blank" rel="noopener">Upscayl</a> — для аниме-артов результат почти как у оригинала.</p>
+    </section>
+
+    <section id="sam">
+      <h2>Что работает само</h2>
+      <p class="lede">Этих пунктов нет в настройках — они просто включены вместе с интерфейсом.</p>
+      <div class="auto">
+        <div><b>Капсула серверов</b>Левая колонка серверов — одна сплошная капсула ровно до панели профиля.</div>
+        <div><b>Каналы, ЛС, участники</b>Каждая строка — «таблетка», выбранная подсвечивается акцентом.</div>
+        <div><b>Панель профиля</b>Аватар, ник и кнопки микрофона и звука — капсулой внизу.</div>
+        <div><b>Звонок и трансляция</b>«Voice Connected» и «Screen 1» — отдельные капсулы, без шва посередине.</div>
+        <div><b>Карточки «Активность»</b>Справа в списке участников — «таблетки» во всю ширину, иконки игр скруглены.</div>
+        <div><b>Ники с цветом роли</b>Светлее, даже тёмные, но цвет роли сохраняется.</div>
+        <div><b>Профили и меню</b>Всплывающий профиль, меню «…», пикер эмодзи и поиск — скруглены, открываются плавно.</div>
+        <div><b>Поле ввода</b>«Таблетка» внизу чата, в режиме ответа — аккуратная двойная капсула.</div>
+      </div>
+    </section>
+
+    <section id="problemy">
+      <h2>Если что-то не так</h2>
+      <div>
+        <details><summary>Bubbscord нет в списке плагинов</summary><div>
+          <p>Проверь путь: должно быть <code>Vencord\src\userplugins\bubbscord\index.tsx</code> (а не <code>…\bubbscord\bubbscord\…</code>). Потом снова <code>pnpm build</code> и <code>Ctrl+R</code> в Discord.</p></div></details>
+        <details><summary>После обновления Discord всё пропало</summary><div>
+          <p>Discord иногда стирает Vencord при своём обновлении. В папке Vencord снова выполни <code>pnpm inject</code> и перезапусти Discord.</p></div></details>
+        <details><summary>«pnpm не является командой»</summary><div>
+          <p>Закрой и заново открой PowerShell после установки pnpm. Не помогло — пиши <code>npx pnpm</code> вместо <code>pnpm</code>.</p></div></details>
+        <details><summary>Обои мыльные</summary><div>
+          <p>Картинка меньше экрана, и Discord её растягивает — открой настройки Bubbscord, под кнопкой выбора обоев написано, во сколько раз. Найди картинку крупнее или увеличь её в Upscayl.</p></div></details>
+        <details><summary>Обои по ссылке не появляются</summary><div>
+          <p>Сайта нет в списке разрешённых Discord или это ссылка на страницу, а не на картинку. Сохрани картинку и выбери её файлом с компьютера.</p></div></details>
+        <details><summary>Мои сообщения не уходят вправо</summary><div>
+          <p>Должны быть включены оба пункта: <b>«Сообщения пузырями»</b> и <b>«Свои сообщения справа»</b>. Плагин узнаёт твои сообщения по аватарке, а если она стандартная — по нику.</p></div></details>
+        <details><summary>Всё выглядит «двойным» или поехало</summary><div>
+          <p>Скорее всего, одновременно включены тема <b>Bubbscord Round</b> и плагин. Оставь что-то одно. Ещё проверь, не включены ли другие темы.</p></div></details>
+      </div>
+    </section>
+
+    <footer>
+      <p><b>Честно о рисках.</b> Любые моды клиента (Vencord, BetterDiscord и т. п.) формально нарушают правила Discord. Банов за косметику практически не бывает, но решай сам. Bubbscord — сторонний плагин: поддержка Vencord с ним не помогает, вопросы — автору, Sherry Williams.</p>
+    </footer>
+  </main>
+</div>
+
+<script>
+document.querySelectorAll("[data-copy]").forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    var code = btn.parentElement.querySelector("code");
+    var text = code.textContent;
+    var done = function () { btn.textContent = "Скопировано"; setTimeout(function () { btn.textContent = "Копировать"; }, 1500); };
+    var fallback = function () {
+      var r = document.createRange(); r.selectNodeContents(code);
+      var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+      btn.textContent = "Выделено — Ctrl+C";
+    };
+    try { navigator.clipboard.writeText(text).then(done, fallback); } catch (e) { fallback(); }
+  });
+});
+</script>
+
+</body>
+</html>

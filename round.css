@@ -1,0 +1,720 @@
+/**
+ * @name Bubbscord Round
+ * @author Sherry Williams
+ * @description Округлый интерфейс Bubbscord: капсулы, «таблетки», мягкие анимации.
+ * @version 3.0.0
+ */
+
+/* =====================================================================
+   ПРАВИЛО ПРОИЗВОДИТЕЛЬНОСТИ (почему селекторы выглядят именно так)
+   Chromium пересчитывает стили по «ключам». Если в ЛЕВОЙ части селектора стоит
+   [class*="…"], ключом становится атрибут class, и тогда смена ЛЮБОГО класса у
+   ЛЮБОГО элемента пересчитывает всё его поддерево (Discord постоянно меняет классы
+   наверху окна — при переключении окон, открытии картинок, наведении).
+   Поэтому слева от пробела/«>» здесь только:
+     • теги (nav, section, form, li, main, article) — у них нет ключа;
+     • стабильные атрибуты Discord (data-list-id, data-list-item-id, role, id);
+     • настоящие классы (user-profile-popout и т.п.).
+   [class*="…"] допустим только в самой правой части — тогда пересчитывается
+   только сам элемент.
+   ===================================================================== */
+
+:root {
+    --round-gap: 8px;
+    --round-line: rgb(255 255 255 / 0.14);
+    --round-line-strong: rgb(255 255 255 / 0.35);
+    --round-line-soft: rgb(255 255 255 / 0.05);
+    --round-fill: rgb(0 0 0 / 0.15);
+
+    --round-guild-scale: 1;
+    --round-guild-inset: 8px;
+
+    --round-bar-height: 60px;
+    --round-bar-fill: rgb(10 10 12 / 0.55);
+    --round-bar-bottom: 8px;
+    --round-avatar-left: 5px;
+    --round-input-side: 20px;
+
+    --round-profile-radius: 28px;
+
+    --round-picker-radius: 24px;
+    --round-picker-bg: rgb(14 14 18 / 0.97);
+
+    --round-glass-fill: rgb(12 12 16 / 0.72);
+    --round-glass-zone: transparent;
+    --round-glass-top: 0px;
+
+    --round-ease: cubic-bezier(0.2, 0, 0, 1);
+    --round-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --round-fast: 120ms;
+    --round-press: 90ms;
+    --round-mid: 200ms;
+    --round-slow: 320ms;
+}
+
+body {
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ===== Сервера: капсула =====
+   Раскладка колонки родная; капсула — рисованный слой ::before под иконками.
+   Список серверов Discord помечает data-list-id="guildsnav". */
+nav[class*="guilds"] {
+    margin-bottom: calc(var(--dedboost-panels-h, calc(var(--round-bar-height) + var(--round-bar-bottom))) + var(--round-gap)) !important;
+    transition: margin-bottom var(--round-mid) var(--round-ease);
+    background: transparent !important;
+    isolation: isolate;
+}
+nav[class*="guilds"]::before {
+    content: "";
+    position: absolute;
+    top: var(--round-gap);
+    bottom: 0;
+    left: var(--round-guild-inset);
+    right: var(--round-guild-inset);
+    border: 1px solid var(--round-line);
+    border-radius: 999px;
+    background: var(--round-fill);
+    pointer-events: none;
+    z-index: -1;
+}
+nav [data-list-id="guildsnav"] {
+    padding-top: calc(var(--round-gap) + 10px) !important;
+    padding-bottom: 14px !important;
+}
+[data-list-id="guildsnav"] [class*="listItem_"] {
+    transform: scale(var(--round-guild-scale));
+    transform-origin: center center;
+    transition: transform var(--round-mid) var(--round-ease) !important;
+}
+[data-list-id="guildsnav"] [class*="listItem_"]:hover {
+    transform: scale(calc(var(--round-guild-scale) * 1.04)) !important;
+}
+[data-list-id="guildsnav"] [class*="listItem_"]:active {
+    transform: scale(calc(var(--round-guild-scale) * 0.97)) !important;
+    transition-duration: var(--round-press) !important;
+}
+/* иконки серверов — ровные круги */
+[data-list-id="guildsnav"] foreignObject {
+    mask: none !important;
+}
+[data-list-id="guildsnav"] foreignObject > *,
+[data-list-id="guildsnav"] [class*="circleIconButton"],
+[data-list-id="guildsnav"] [class*="folderIconWrapper"] {
+    border-radius: 50% !important;
+    overflow: hidden;
+}
+
+/* ===== Тонкие линии между колонками ===== */
+[class*="sidebar_"]:has(> nav[class*="guilds"]) {
+    border-right: 1px solid var(--round-line) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+}
+[class*="membersWrap"],
+[class*="profilePanel"] {
+    border-left: 1px solid var(--round-line) !important;
+    background: transparent !important;
+}
+[class*="members_"] {
+    background: transparent !important;
+}
+/* шапки: поиск ЛС, название сервера, название канала — линия снизу */
+button[class*="searchBarComponent"],
+nav ~ div header,
+section[class*="title_"] {
+    border-bottom: 1px solid var(--round-line) !important;
+    box-shadow: none !important;
+}
+/* родная тёмная полоса внизу боковой панели — не нужна */
+[class*="sidebar_"]::after {
+    display: none !important;
+}
+/* списки каналов и ЛС прокручиваются до конца, над «таблеткой» профиля */
+nav ~ div [class*="scroller"] {
+    padding-bottom: calc(var(--round-bar-height) + var(--round-bar-bottom) + var(--round-gap)) !important;
+    scroll-padding-bottom: calc(var(--round-bar-height) + var(--round-bar-bottom) + var(--round-gap)) !important;
+}
+
+/* ===== Каналы и ЛС: «таблетки» =====
+   Каналы: data-list-id="channels", ссылки data-list-item-id="channels___…".
+   ЛС: data-list-id="private-channels…". */
+[data-list-id="channels"] [class*="wrapper_"],
+[data-list-item-id^="channels___"],
+[data-list-id^="private-channels"] [class*="interactive_"] {
+    border-radius: 999px !important;
+    border: none !important;
+    box-shadow: none !important;
+    transition:
+        background-color var(--round-fast) var(--round-ease),
+        color var(--round-fast) var(--round-ease) !important;
+}
+[class*="containerDefault"],
+[data-list-id^="private-channels"] [class*="channel_"] {
+    margin-left: 6px !important;
+    margin-right: 6px !important;
+}
+[data-list-item-id^="channels___"] {
+    padding-left: 10px !important;
+}
+[data-list-id="channels"] [class*="wrapper_"]:hover,
+[data-list-id^="private-channels"] [class*="interactive_"]:hover {
+    background: rgb(255 255 255 / 0.05) !important;
+    box-shadow: inset 0 0 0 1px var(--round-line) !important;
+}
+[class*="modeSelected"],
+[class*="interactiveSelected"] {
+    background: rgb(255 255 255 / 0.08) !important;
+    box-shadow: inset 0 0 0 1px var(--round-line-strong) !important;
+}
+
+/* ===== Поле ввода — «таблетка» =====
+   Без :has по потомкам: такое правило Discord пересчитывал бы на каждое нажатие клавиши. */
+[class*="channelTextArea_"] {
+    min-height: var(--round-bar-height) !important;
+    border-radius: calc(var(--round-bar-height) / 2) !important;
+    border: 1px solid var(--round-line) !important;
+    background: var(--round-glass-fill) !important;
+    margin-bottom: var(--round-bar-bottom) !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    transition:
+        border-color var(--round-mid) var(--round-ease),
+        box-shadow var(--round-mid) var(--round-ease) !important;
+}
+[class*="channelTextArea_"]:focus-within {
+    border-color: var(--round-line-strong) !important;
+    box-shadow: 0 0 0 3px rgb(255 255 255 / 0.05) !important;
+}
+[class*="scrollableContainer_"] {
+    border: none !important;
+    border-radius: calc(var(--round-bar-height) / 2) !important;
+    background: transparent !important;
+    padding-left: var(--round-input-side) !important;
+    padding-right: var(--round-input-side) !important;
+}
+
+/* Режим ответа: две капсулы — плашка сверху и строка ввода под ней.
+   Обе — соседи внутри channelTextArea, поэтому связываем их через «~», без :has по потомкам. */
+form [class*="channelTextArea_"]:has(> [class*="stackedBars"], > * > [class*="stackedBars"]),
+form [class*="channelTextArea_"]:has(> [class*="attachedBars"], > * > [class*="attachedBars"]),
+form [class*="channelTextArea_"]:has(> [class*="stackedBars"], > * > [class*="stackedBars"]):focus-within,
+form [class*="channelTextArea_"]:has(> [class*="attachedBars"], > * > [class*="attachedBars"]):focus-within {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+    min-height: 0 !important;
+}
+form [class*="stackedBars"],
+form [class*="attachedBars"] {
+    border-radius: 999px !important;
+    border: 1px solid var(--round-line) !important;
+    background: var(--round-glass-fill) !important;
+    box-shadow: none !important;
+    margin: 0 0 6px !important;
+    overflow: hidden !important;
+}
+form [class*="stackedBars"]:has(> :nth-child(2)) {
+    border-radius: 20px !important;
+}
+form [class*="replyBar_"],
+form [class*="threadSuggestionBar_"] {
+    background: transparent !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    border-top: none !important;
+    padding-left: 18px !important;
+    padding-right: 12px !important;
+}
+form [class*="replyBar_"]:not(:last-child),
+form [class*="threadSuggestionBar_"]:not(:last-child) {
+    border-bottom: 1px solid var(--round-line-soft) !important;
+}
+form [class*="stackedBars"] ~ [class*="scrollableContainer_"],
+form [class*="attachedBars"] ~ [class*="scrollableContainer_"] {
+    min-height: var(--round-bar-height) !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    border-radius: 999px !important;
+    border: 1px solid var(--round-line) !important;
+    background: var(--round-glass-fill) !important;
+}
+form [class*="stackedBars"] ~ [class*="scrollableContainer_"]:focus-within,
+form [class*="attachedBars"] ~ [class*="scrollableContainer_"]:focus-within {
+    border-color: var(--round-line-strong) !important;
+}
+
+/* ===== Профиль внизу слева — «таблетка» =====
+   Блок профиля — <section> сразу после колонки серверов (<nav>), поэтому «nav ~ section». */
+section[class*="panels_"] {
+    margin: 0 !important;
+    padding: var(--round-glass-top) var(--round-gap) var(--round-bar-bottom) var(--round-guild-inset) !important;
+    border: none !important;
+    background: var(--round-glass-zone) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    --custom-panels-spacing: 0px !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    z-index: 10 !important;
+}
+nav ~ section > div:last-child {
+    height: var(--round-bar-height) !important;
+    min-height: var(--round-bar-height) !important;
+    box-sizing: border-box !important;
+    border: 1px solid var(--round-line) !important;
+    border-radius: calc(var(--round-bar-height) / 2) !important;
+    background: var(--round-glass-fill) !important;
+    padding: 0 10px 0 var(--round-avatar-left) !important;
+    margin: 0 !important;
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    transition:
+        border-color var(--round-mid) var(--round-ease),
+        box-shadow var(--round-mid) var(--round-ease) !important;
+}
+nav ~ section > div:last-child > div:first-child,
+nav ~ section > div:last-child > div:first-child > div {
+    margin-left: 0 !important;
+    border-radius: 999px !important;
+}
+
+/* ===== Панель звонка (Voice Connected) — своя капсула =====
+   Капсула собирается из двух соседей: строки статуса (.connection_…) — верхняя половина,
+   и ряда кнопок (.actionButtons_…) — нижняя. Без div:has(...): такое правило проверялось бы
+   у каждого блока в окне и тормозило набор текста и новые сообщения. */
+[class*="connection_"]:has(~ [class*="actionButtons_"]) {
+    border: 1px solid var(--round-line) !important;
+    border-bottom: none !important;
+    border-radius: 22px 22px 0 0 !important;
+    background: var(--round-glass-fill) !important;
+    padding: 6px 8px 2px !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+}
+[class*="connection_"] ~ [class*="actionButtons_"] {
+    border: 1px solid var(--round-line) !important;
+    border-top: none !important;
+    border-radius: 0 0 22px 22px !important;
+    background: var(--round-glass-fill) !important;
+    padding: 4px 8px 8px !important;
+    margin: 0 0 6px !important;
+    box-sizing: border-box !important;
+}
+/* Панель трансляции экрана («Screen 1 · 1440p 60FPS») — отдельная капсула над звонком.
+   activityPanel_ — класс самого блока (только у него), без проверок по предкам. */
+[class*="activityPanel_"] {
+    border: 1px solid var(--round-line) !important;
+    border-radius: 22px !important;
+    background: var(--round-glass-fill) !important;
+    padding: 8px 10px !important;
+    margin: 0 0 6px !important;
+    box-sizing: border-box !important;
+}
+/* кнопки звонка: все кнопки левой колонки (соседи <nav>) — слева только теги, это бесплатно */
+nav ~ * button {
+    border-radius: 999px !important;
+}
+
+/* ===== Участники: каждая строка — «таблетка» =====
+   Строки списка Discord помечает data-list-item-id="members-…". */
+[data-list-item-id^="members"] {
+    border-radius: 999px !important;
+    overflow: hidden !important;
+    margin-left: 6px !important;
+    margin-right: 6px !important;
+    transition:
+        background-color var(--round-fast) var(--round-ease),
+        color var(--round-fast) var(--round-ease) !important;
+}
+[data-list-item-id^="members"] [class*="layout_"],
+[data-list-item-id^="members"] [class*="nameplateItem"],
+[data-list-item-id^="members"] [class*="nameplated"] {
+    border-radius: 999px !important;
+}
+[data-list-item-id^="members"] [class*="layout_"] {
+    padding-left: 5px !important;
+}
+[data-list-item-id^="members"]:hover {
+    box-shadow: inset 0 0 0 1px var(--round-line-strong) !important;
+}
+/* карточки вне списка участников (профиль справа в ЛС) — мягко скруглённые */
+aside [class*="card_"] {
+    border-radius: 22px !important;
+    overflow: hidden !important;
+}
+/* ===== Карточки «Активность» в списке участников — «таблетки» =====
+   Разметка (снята с живого Discord): обёртка div[role=button][data-list-item-id="members-…___N"]
+   → карточка div.container_…openOnHover_… (Discord сдвигал её на 8px вправо и вниз,
+   а «таблетка» обёртки обрезала края — отсюда пустоты) → текст и картинка thumbnail_.
+   Слева от пробела только атрибут data-list-item-id: так дёшево для пересчёта стилей. */
+[data-list-item-id^="members"] > [class*="openOnHover_"] {
+    margin: 3px 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    border-radius: 999px !important;
+    padding: 8px 10px 8px 18px !important;
+    border: 1px solid var(--round-line) !important;
+    background: var(--round-glass-fill) !important;
+    box-shadow: none !important;
+    transition:
+        background-color var(--round-fast) var(--round-ease),
+        border-color var(--round-fast) var(--round-ease) !important;
+}
+[data-list-item-id^="members"] > [class*="openOnHover_"]:hover {
+    border-color: var(--round-line-strong) !important;
+    background: rgb(28 28 34 / 0.82) !important;
+}
+/* обёртка — без своего фона и рамки, чтобы не было второго контура вокруг карточки */
+[data-list-item-id^="members"]:has(> [class*="openOnHover_"]),
+[data-list-item-id^="members"]:has(> [class*="openOnHover_"]):hover {
+    background: transparent !important;
+    box-shadow: none !important;
+}
+/* иконки игр и приложений — круглее */
+[data-list-item-id^="members"] img[class*="thumbnail_"],
+[data-list-item-id^="members"] [class*="thumbnailButton_"] {
+    border-radius: 18px !important;
+}
+/* текст карточки — чище и светлее */
+[data-list-item-id^="members"] [class*="contentTitle_"] {
+    color: rgb(255 255 255) !important;
+}
+/* только ник в карточке (userName_ с большой N — это класс карточки; в строках участников
+   ник — username_ и nameContainer_, их цвет роли не трогаем) */
+[data-list-item-id^="members"] [class*="userName_"] {
+    color: rgb(244 245 248 / 0.92) !important;
+}
+[data-list-item-id^="members"] [class*="badgeLabel_"] {
+    color: rgb(255 255 255 / 0.66) !important;
+}
+/* всплывашка «… played» (открывается по клику на карточку) — скруглённая целиком */
+[role="dialog"]:not([aria-modal="true"]) {
+    border-radius: 20px;
+}
+/* Ники с цветом роли (Discord ставит его прямо в style) — светлее, даже тёмные.
+   contrast чуть подтягивает почти чёрные цвета к серому, brightness поднимает их,
+   saturate возвращает насыщенность — цвет роли остаётся, просто светлее. Белые остаются белыми. */
+[data-list-id^="members"] span[style*="color"] {
+    filter: contrast(0.8) brightness(1.35) saturate(1.35);
+}
+
+/* ===== Кнопки и выборы — «таблетки» (правая часть — тег/role, это дёшево) ===== */
+nav ~ section button,
+nav ~ section [role="button"],
+form button,
+form [role="button"],
+[class*="emojiButton"],
+section[aria-label] [role="button"]:not(:has([id^="message-content-"])),
+section[aria-label] button,
+[class*="buttonsInner"],
+[class*="hoverBarButton"],
+[role="menuitem"], [role="menuitemcheckbox"], [role="menuitemradio"],
+[role="option"], [role="tab"],
+[class*="focusRing"] {
+    border-radius: 999px !important;
+}
+/* сообщения в поиске и закреплённых — это тоже кликабельные блоки (role=button);
+   «таблеткой» их не делаем (высокий блок превращался в круг), а мягко скругляем */
+section[aria-label] [role="button"]:has([id^="message-content-"]) {
+    border-radius: 20px !important;
+}
+/* плавная смена цвета; нажатие — короткое вдавливание */
+nav ~ section button,
+nav ~ section [role="button"],
+form button,
+form [role="button"],
+section[aria-label] [role="button"]:not(:has([id^="message-content-"])),
+[class*="hoverBarButton"],
+[role="menuitem"], [role="menuitemradio"], [role="menuitemcheckbox"],
+[role="option"], [role="tab"] {
+    transition:
+        background-color var(--round-fast) var(--round-ease),
+        border-color var(--round-fast) var(--round-ease),
+        color var(--round-fast) var(--round-ease),
+        transform var(--round-press) var(--round-ease) !important;
+}
+nav ~ section button:active,
+nav ~ section [role="button"]:active,
+form button:active,
+form [role="button"]:active,
+section[aria-label] [role="button"]:not(:has([id^="message-content-"])):active,
+[class*="hoverBarButton"]:active,
+[role="dialog"] button:active {
+    transform: scale(0.96) !important;
+}
+
+/* ===== Сообщения: подсветка, упоминания и ответы — скруглённые ===== */
+li[id^="chat-messages-"] > div {
+    border-radius: 18px !important;
+    margin-left: 8px !important;
+    margin-right: 8px !important;
+    transition: background-color var(--round-fast) var(--round-ease) !important;
+}
+/* картинки — скругляем обёртку; видео/гифки не трогаем (маска на каждом кадре — дорого) */
+li[id^="chat-messages-"] [class*="imageWrapper"] {
+    border-radius: 14px !important;
+}
+/* встраивания (YouTube, ссылки, боты) — только рамка, без обрезки содержимого */
+article[class*="embed"],
+[class*="embedFull"] {
+    border-radius: 16px !important;
+}
+article img,
+article [class*="imageWrapper"] {
+    border-radius: 12px !important;
+}
+@keyframes round-fade-up {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: none; }
+}
+li[id^="chat-messages-"]:last-child > div {
+    animation: round-fade-up var(--round-mid) var(--round-ease-out) both;
+}
+
+/* ===== Профили: справа в ЛС и всплывающий =====
+   Стабильные классы Discord: user-profile-sidebar / user-profile-popout. */
+:is(.user-profile-sidebar, .user-profile-popout)[class*="outer_"] {
+    border-radius: var(--round-profile-radius) !important;
+}
+/* слева — только настоящие классы (без [class*=…]): так смена любого класса не пересчитывает всё вокруг */
+:is(.user-profile-sidebar, .user-profile-popout) > [class*="inner_"] {
+    border-radius: calc(var(--round-profile-radius) - 2px) !important;
+}
+:is(.user-profile-sidebar, .user-profile-popout) [class*="overlay_"] {
+    border-radius: 18px !important;
+}
+:is(.user-profile-sidebar, .user-profile-popout) [class*="menuOverlay_"] {
+    border-radius: 20px !important;
+}
+:is(.user-profile-sidebar, .user-profile-popout) [class*="menuItemInner_"] {
+    border-radius: 999px !important;
+}
+:is(.user-profile-sidebar, .user-profile-popout) button {
+    border-radius: 999px !important;
+}
+.user-profile-popout[class*="outer_"] {
+    box-shadow: 0 12px 40px rgb(0 0 0 / 0.45) !important;
+}
+
+/* ===== Меню эмодзи / GIF / стикеров =====
+   Стили — на самой панели (.drawerSizingWrapper_), её скругление Discord раздаёт
+   внутрь через --custom-emoji-picker-border-radius. */
+[class*="drawerSizingWrapper_"],
+[class*="emojiPicker_"] {
+    --custom-emoji-picker-border-radius: var(--round-picker-radius);
+    border-radius: var(--round-picker-radius) !important;
+    border: 1px solid var(--round-line) !important;
+    background: var(--round-picker-bg) !important;
+    box-shadow: 0 16px 48px rgb(0 0 0 / 0.5) !important;
+    overflow: hidden !important;
+}
+/* внутри панели (вкладки Discord: id="emoji-picker-tab-panel" и т.п.) у пикера своей коробки нет —
+   её рисует сама панель; отдельной коробкой он остаётся только в меню реакций */
+[id$="-picker-tab-panel"] [class*="emojiPicker_"] {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+/* вкладки GIFs / Stickers / Emoji */
+[role="tablist"] [class*="navButton_"] {
+    border-radius: 999px !important;
+}
+/* поле поиска в панели: обёртка вокруг <input> (без div:has — см. панель звонка) */
+[id$="-picker-tab-panel"] [class*="inner_"]:has(> input),
+[id$="-picker-tab-panel"] [class*="container_"]:has(> [class*="inner_"] > input),
+[class*="searchBar"] {
+    border-radius: 999px !important;
+}
+[class*="categoryItem"] {
+    border-radius: 12px !important;
+}
+[class*="unicodeShortcut_"] {
+    background: rgb(16 16 20) !important;
+    border-top: 1px solid var(--round-line) !important;
+}
+[class*="categoryList_"] {
+    background: rgb(0 0 0 / 0.25) !important;
+}
+[class*="emojiItem_"] {
+    border-radius: 10px !important;
+}
+[class*="stickerAsset"],
+[class*="categoryFade"],
+[id$="-picker-tab-panel"] [class*="result_"] {
+    border-radius: 14px !important;
+}
+[class*="inspector_"] {
+    border-radius: 0 0 var(--round-picker-radius) var(--round-picker-radius) !important;
+}
+
+/* ===== Контекстные меню («…», правый клик, подменю) ===== */
+[role="menu"] {
+    border-radius: 22px !important;
+    border: 1px solid var(--round-line) !important;
+    background: var(--round-picker-bg) !important;
+    box-shadow: 0 16px 48px rgb(0 0 0 / 0.5) !important;
+    overflow: hidden !important;
+}
+[role="menu"] [class*="separator_"] {
+    border-bottom-color: var(--round-line) !important;
+    margin-left: 12px !important;
+    margin-right: 12px !important;
+}
+[role="menu"] [id*="quick"] {
+    border-radius: 14px !important;
+}
+
+/* ===== Поиск ===== */
+[class*="searchResult_"],
+[class*="searchResultMessage"] {
+    border-radius: 20px !important;
+    overflow: hidden !important;
+}
+[class*="jumpButton"],
+[class*="search_"],
+section[aria-label] [role="combobox"] {
+    border-radius: 999px !important;
+}
+
+/* ===== Появление окон ===== */
+@keyframes round-pop-in {
+    from { opacity: 0; transform: translateY(4px) scale(0.98); }
+    to   { opacity: 1; transform: none; }
+}
+@keyframes round-fade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+[role="menu"],
+[role="dialog"]:not([aria-modal="true"]):not(:has(> .user-profile-popout)),
+[class*="autocomplete"] {
+    animation: round-pop-in var(--round-mid) var(--round-ease-out) both;
+    transform-origin: top left;
+}
+[role="tooltip"] {
+    animation: round-fade var(--round-fast) var(--round-ease) both;
+}
+@keyframes round-profile-in {
+    0%   { opacity: 0; transform: translateY(10px) scale(0.95); }
+    60%  { opacity: 1; }
+    100% { opacity: 1; transform: none; }
+}
+@keyframes round-rise {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: none; }
+}
+.user-profile-popout[class*="outer_"] {
+    animation: round-profile-in var(--round-slow) var(--round-ease-out) both;
+    transform-origin: 20% 100%;
+}
+.user-profile-popout [class*="menuOverlay_"] {
+    animation: round-rise var(--round-slow) var(--round-ease-out) 70ms both;
+}
+.user-profile-popout [class*="menuOverlay_"] ~ [class*="menuOverlay_"] {
+    animation-delay: 130ms;
+}
+
+/* ===== Окна подтверждения («Удалить сообщение?», «Выйти с сервера?» и т.п.) =====
+   Окно — скруглённая капсула, кнопки — «таблетки», рамка с предпросмотром — мягко скруглена.
+   Слева только атрибуты role / aria-modal — проверка дешёвая. */
+[role="dialog"][aria-modal="true"] {
+    border-radius: 24px !important;
+    overflow: hidden !important;
+}
+[role="dialog"][aria-modal="true"] button {
+    border-radius: 999px !important;
+}
+/* рамка с предпросмотром сообщения (это прокручиваемый блок) и само сообщение внутри */
+[role="dialog"][aria-modal="true"] [class*="scroller"],
+[role="dialog"][aria-modal="true"] [role="article"] {
+    border-radius: 18px !important;
+}
+
+/* ===== Страницы настроек (пользователя, сервера, канала) =====
+   Разметка снята с живого клиента: меню слева — [role=tablist], содержимое — [role=tabpanel].
+   Слева от пробела только role — проверка дешёвая. */
+/* «Удалить канал» и другие кнопки в меню слева — как вкладки */
+[role="tablist"] > [role="button"] {
+    border-radius: 999px !important;
+}
+/* поля ввода и выпадающие списки — «таблетки» (20px при высоте 40px; у высоких — мягкое скругление, не круг) */
+[role="tabpanel"] [class*="wrapper_"][class*="container_"],
+[class*="selectField_"] {
+    --custom-input-border-radius: 20px !important;
+    border-radius: 20px !important;
+}
+/* панель B I U S над описанием канала — отдельная «таблетка» */
+[class*="staticToolbar_"] {
+    border-radius: 999px !important;
+    padding: 0 8px !important;
+    margin-bottom: 6px !important;
+}
+/* поле описания канала: высокое, поэтому скругление 22px, а не полукругом */
+[class*="topicContainer_"],
+[class*="topic_"][class*="scrollableContainer_"] {
+    border-radius: 22px !important;
+}
+/* плашки-подсказки (синяя «info», жёлтая «warning» и т.п.) */
+[role="tabpanel"] [class*="container_"][class*="info_"],
+[role="tabpanel"] [class*="container_"][class*="warning_"],
+[role="tabpanel"] [class*="container_"][class*="danger_"] {
+    border-radius: 16px !important;
+}
+
+/* ===== Новые кнопки Discord с текстом («Edit Channel», «Сохранить» и т.п.) — «таблетки» =====
+   button_…hasText_… — так Discord помечает кнопку с подписью (снято с живого клиента). */
+button[class*="hasText_"] {
+    border-radius: 999px !important;
+}
+/* кнопки поверх вложения (скачать, удалить) */
+[class*="hoverButtonGroup_"] {
+    border-radius: 999px !important;
+}
+
+/* ===== Файлы во вложениях (архивы, документы) — скруглённая карточка =====
+   [class^="file_"] / [class*=" file_"] — именно класс file_…, а не, например, profile_…. */
+[class^="file_"],
+[class*=" file_"] {
+    border-radius: 16px !important;
+}
+
+/* ===== Полосы прокрутки ===== */
+[class*="scroller"]::-webkit-scrollbar-thumb,
+[class*="thin_"]::-webkit-scrollbar-thumb,
+[class*="auto_"]::-webkit-scrollbar-thumb {
+    border-radius: 999px !important;
+    background-color: rgb(255 255 255 / 0.12) !important;
+    border: 3px solid transparent !important;
+    background-clip: padding-box !important;
+}
+[class*="scroller"]::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(255 255 255 / 0.24) !important;
+}
+[class*="scroller"]::-webkit-scrollbar-track,
+[class*="auto_"]::-webkit-scrollbar-track {
+    background: transparent !important;
+}
+
+/* ===== Мелочи ===== */
+[class*="popout"], [class*="menu_"], [class*="tooltip_"] {
+    border-radius: 12px !important;
+}
+img[class*="avatar"] {
+    border-radius: 50% !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+    }
+}
